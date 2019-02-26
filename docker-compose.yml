@@ -3,7 +3,6 @@ services:
 
   api:
     image: rtakauti/pismo_go
-    container_name: 'api'
     environment:
       DB_NAME: 'pismo'
       DB_USER: 'root'
