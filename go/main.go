@@ -19,11 +19,18 @@ func main() {
 	repo := NewAccountRepository(DBConn(conf))
 	accountService := NewAccountService(repo)
 
-	app.Get("/accounts", func(ctx iris.Context) {
+	transactionRepo := NewTransactionRepository(DBConn(conf))
+	transactionService := NewTransactionService(transactionRepo)
+
+	app.Get("/v1/accounts", func(ctx iris.Context) {
 		ctx.JSON(accountService.GetAll())
 	})
 
-	app.Get("/accounts/{id:int}", func(ctx iris.Context) {
+	app.Get("/v1/accounts/limits", func(ctx iris.Context) {
+		ctx.JSON(accountService.GetAll())
+	})
+
+	app.Get("/v1/accounts/{id:int}", func(ctx iris.Context) {
 		id, _ := ctx.Params().GetInt("id")
 		account := accountService.GetById(id)
 		if account.Account_id != 0 {
@@ -33,7 +40,7 @@ func main() {
 		ctx.StatusCode(iris.StatusNotFound)
 	})
 
-	app.Delete("/accounts/{id:int}", func(ctx iris.Context) {
+	app.Delete("/v1/accounts/{id:int}", func(ctx iris.Context) {
 		id, _ := ctx.Params().GetInt("id")
 		exists := accountService.Delete(id)
 		if !exists {
@@ -45,7 +52,7 @@ func main() {
 		return
 	})
 
-	app.Post("/accounts", func(ctx iris.Context) {
+	app.Post("/v1/accounts", func(ctx iris.Context) {
 		var account Account
 		ctx.ReadJSON(&account)
 
@@ -58,7 +65,7 @@ func main() {
 		ctx.JSON(inserterAccount)
 	})
 
-	app.Put("/accounts/{id:int}", func(ctx iris.Context) {
+	app.Put("/v1/accounts/{id:int}", func(ctx iris.Context) {
 		var account Account
 		ctx.ReadJSON(&account)
 		id, _ := ctx.Params().GetInt("id")
@@ -74,6 +81,37 @@ func main() {
 			return
 		}
 		ctx.JSON(updatedAccount)
+	})
+
+	app.Patch("/v1/accounts/{id:int}", func(ctx iris.Context) {
+		var account Account
+		ctx.ReadJSON(&account)
+		id, _ := ctx.Params().GetInt("id")
+		cont := accountService.GetById(id)
+		if cont.Account_id == 0 {
+			ctx.StatusCode(iris.StatusNotFound)
+		}
+
+		updatedAccount, err := accountService.Patch(id, account)
+		if err != nil {
+			ctx.StatusCode(iris.StatusInternalServerError)
+
+			return
+		}
+		ctx.JSON(updatedAccount)
+	})
+
+	app.Post("/v1/transactions", func(ctx iris.Context) {
+		var transaction Transaction
+		ctx.ReadJSON(&transaction)
+
+		inserterTransaction, err := transactionService.Insert(transaction)
+		if err != nil {
+			ctx.StatusCode(iris.StatusInternalServerError)
+
+			return
+		}
+		ctx.JSON(inserterTransaction)
 	})
 
 	app.Run(

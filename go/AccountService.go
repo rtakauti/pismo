@@ -29,3 +29,7 @@ func (s *AccountServiceRepo) Insert(item Account) (Account, error) {
 func (s *AccountServiceRepo) Update(id int, item Account) (Account, error) {
 	return s.Repo.Update(id, item)
 }
+
+func (s *AccountServiceRepo) Patch(id int, item Account) (Account, error) {
+	return s.Repo.Patch(id, item)
+}
