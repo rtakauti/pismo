@@ -29,7 +29,7 @@ CREATE TABLE transactions
   Amount            FLOAT           NOT NULL CHECK ( Amount < 0 ),
   Balance           FLOAT           NOT NULL CHECK ( Balance <= 0 ),
   Created_at        TIMESTAMP,
-  Due_at            DATETIME,
+  Due_at            TIMESTAMP,
   CONSTRAINT FK_account_transaction
     FOREIGN KEY (Account_id)
       REFERENCES accounts (Account_id)

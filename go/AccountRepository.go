@@ -11,6 +11,7 @@ type AccountRepository interface {
 	GetById(id int) (result Account)
 	Insert(account Account) (insertedAccount Account, err error)
 	Update(id int, account Account) (updatedAccount Account, err error)
+	Patch(id int, account Account) (patchedAccount Account, err error)
 	Delete(id int) (deleted bool)
 }
 
@@ -103,6 +104,25 @@ func (repository *dbAccountRepository) Update(id int, account Account) (updatedA
 	updatedAccount.Account_id = id
 
 	return updatedAccount, err
+}
+
+func (repository *dbAccountRepository) Patch(id int, account Account) (patchedAccount Account, err error) {
+	stmt, err := repository.Conn.Prepare("UPDATE accounts SET Available_credit_limit = ?, Available_withdrawal_limit = ? WHERE Account_id = ?")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	patchedAccount = repository.GetById(id)
+	patchedAccount.Available_credit_limit = patchedAccount.Available_credit_limit + account.Available_credit_limit
+	patchedAccount.Available_withdrawal_limit = patchedAccount.Available_withdrawal_limit + account.Available_withdrawal_limit
+	_, err = stmt.Exec(patchedAccount.Available_credit_limit, patchedAccount.Available_withdrawal_limit, id)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	patchedAccount.Account_id = id
+
+	return patchedAccount, err
 }
 
 func (repository *dbAccountRepository) Delete(id int) (deleted bool) {
